@@ -1,0 +1,157 @@
+[
+    {
+        "id": "d4d33e3a625cd210",
+        "type": "tab",
+        "label": "Example flow",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "db57b702790af355",
+        "type": "sinch-received-email",
+        "z": "d4d33e3a625cd210",
+        "name": "",
+        "recipient": "",
+        "x": 460,
+        "y": 540,
+        "wires": [
+            [
+                "dfcaf0edfb385044"
+            ]
+        ]
+    },
+    {
+        "id": "0e97984de773d8ce",
+        "type": "sinch-send-email",
+        "z": "d4d33e3a625cd210",
+        "name": "",
+        "baseUrl": "",
+        "apiKey": "",
+        "sender": "",
+        "recipient": "",
+        "subject": "",
+        "body": "",
+        "template": "",
+        "variables": [],
+        "tags": [],
+        "delivered": true,
+        "failed": false,
+        "unsubscribed": false,
+        "opened": false,
+        "clicked": false,
+        "complained": false,
+        "outputMap": "{\"default\":0,\"delivered\":1}",
+        "outputs": 2,
+        "x": 630,
+        "y": 320,
+        "wires": [
+            [
+                "fd78ce2a0d2d9d9a"
+            ],
+            [
+                "880f36b661985a58"
+            ]
+        ]
+    },
+    {
+        "id": "3756cda309699ba3",
+        "type": "inject",
+        "z": "d4d33e3a625cd210",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 440,
+        "y": 320,
+        "wires": [
+            [
+                "0e97984de773d8ce"
+            ]
+        ]
+    },
+    {
+        "id": "fd78ce2a0d2d9d9a",
+        "type": "debug",
+        "z": "d4d33e3a625cd210",
+        "name": "log after sending",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 890,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "880f36b661985a58",
+        "type": "debug",
+        "z": "d4d33e3a625cd210",
+        "name": "log delivery events",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 890,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "dfcaf0edfb385044",
+        "type": "debug",
+        "z": "d4d33e3a625cd210",
+        "name": "log incoming email",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 750,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "fc003d52e10ed1e3",
+        "type": "comment",
+        "z": "d4d33e3a625cd210",
+        "name": "README - Send Email",
+        "info": "This simple flow allows you to test sending \nemails using the Mailgun API.\n\n## Configuration\n1. **Base-url:** The base url that you've configured in mailgun, e.g. example.com\n2. **API-key:** An api-key provided by mailgun. Found in Mailgun dashboard under your profile -> API keys\n3. **Sender:** The sender email that you want to send the email from\n4. **Recipient:** The recipient email that you want to send the email to (can also be passed on msg.recipient)\n5. **Subject:** The subject title of the email. \n6. **Body:** Body text of the email that is used if no template is selected\n7. **Template:** Templates created in your mailgun account will be available here if you've entered valid base-url and API-key.\n   Will be used instead of body if selected.\n8. **Variables:** Will replace variables configured in the template. e.g. {{firstname}}\n9. **Events:** Configure the events that you are interested in listening for. Each checked event will create a separate output on the node.\n",
+        "x": 480,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "2e2b04dbb4c9a415",
+        "type": "comment",
+        "z": "d4d33e3a625cd210",
+        "name": "README - Receive Email",
+        "info": "This simple flow allows you to test receiving \nemails from Mailgun. Listen for emails arriving to &lt;node-red-path&gt;/mailgun/events-email\n\n## Configuration\n**Match sender:** \nPossible match creteria for the Match sender field:\n1. Exact match: e.g. info@example.com\n2. Regular expression: e.g. ^[A-Za-z0-9._%+-]+@example\\.com$ will match all emails with the domain example.com.\n3. Left empty: matches all",
+        "x": 490,
+        "y": 460,
+        "wires": []
+    }
+]

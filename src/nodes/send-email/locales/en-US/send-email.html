@@ -1,0 +1,56 @@
+<script type="text/html" data-help-name="sinch-send-email">
+  <p>
+    The Send email node allows you to send email using the Mailgun API.
+  </p>
+  <h2>Configuration:</h2>
+  <ul>
+    <li><code>Base URL</code> & <code>API key</code> can be found in you mailgun dashboard. </li>
+    <li><code>Sender</code> is mandatory (the sender email address).</li>
+    <li><code>Recipient</code> can either be set in the node configuration or be passed on <code>msg.recipient</code>.</li>
+    <li><code>Subject</code> is mandatory (the Title of the email).</li>
+    <li><code>Body</code> is mandatory if no template is selected, but will be ignored if a template is selected.</li>
+    <li><code>Template</code> is not mandatory. If correct credentials for the Mailgun API is provided and if you've created templates in the mailgun dashboard, then they can be selected in the configuration.</li>
+    <li><code>Variables</code> is used with templates if variables are created for a template in the mailgun dashboard.</li>
+    <li><code>Outputs</code> controls the different outputs for the node. Read more below.</li>
+  </ul>
+
+  In order to receive events such as <strong>Delivered</strong> or <strong>Unsubscribed</strong> you need to configure a webhook for each event. 
+  This is also done in the Mailgun <a href="https://app.mailgun.com/mg/dashboard" target="_blank">dashboard</a>. Sending -> Webhooks. 
+  The path should be: <code>&lt;node-red-path&gt;/mailgun/events-email</code>.
+
+  <h2>Inputs and outputs</h2>
+  <h3>Input</h3>
+  <dl class="message-properties">
+    <dt>
+      recipient <span class="property-type">string</span>
+    </dt>
+    <dd>Will be used as the recipient email</dd>
+  </dl>
+  <dl class="message-properties">
+    <dt>
+      sender <span class="property-type">string</span>
+    </dt>
+    <dd>Will be used as the sender email</dd>
+  </dl>
+  <h3>Outputs</h3>
+  The Send email node has one Default output, passing the following properties: 
+  <dl class="message-properties">
+    <dt>
+      recipient <span class="property-type">string</span>
+    </dt>
+    <dd>Recipient email address.</dd>
+  </dl>
+  <dl class="message-properties">
+    <dt>
+      sender <span class="property-type">string</span>
+    </dt>
+    <dd>Sender email address.</dd>
+  </dl>
+  <dl class="message-properties">
+    <dt>
+      variables <span class="property-type">array</span>
+    </dt>
+    <dd>An array contianing key-value pairs of variables.</dd>
+  </dl>
+  Additionally, there are 6 outputs for events. Each output corresponds to a specific event, e.g. Delivered, Dailed & Unsubscribed.
+</script>

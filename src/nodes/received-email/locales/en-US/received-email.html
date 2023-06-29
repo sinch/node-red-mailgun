@@ -1,0 +1,35 @@
+<script type="text/html" data-help-name="sinch-received-email">
+  <p>
+    The Received email node allows you to receive emails from the Mailgun API.
+  </p>
+  <h2>Configuration:</h2>
+  <p>
+    The node will be triggered only if the incoming email's
+    <code>to</code> address matches the address specified in the
+    <code>Match sender</code> field. You may use a regular expression to match
+    variations of addresses. You can use <a href="https://regexr.com/" target="_blank">regexr.com</a> or other tools for help
+    building it. E.g: <code>^[A-Za-z0-9._%+-]+@example\.com$</code> will match all
+    emails with the domain <code>example.com</code>. If the <code>Match sender</code> field is 
+    left empty, then it will match to all incoming email addresses. 
+  </p>
+  <p>
+    In order to receive messages from Mailgun, you need to configure a route on the Mailgun <a href="https://app.mailgun.com/app/receiving/routes" target="_blank">dashboard</a>.
+    The path should be: <code>&lt;node-red-path&gt;/mailgun/events-email</code>.
+  </p>
+
+  <h3>Output</h3>
+  The following will be passed on the <code>msg</code> object when an email
+  arrives:
+  <dl class="message-properties">
+    <dt>sender <span class="property-type">string</span></dt>
+    <dd>The receiving email address, configured in the Mailgun dashboard.</dd>
+    <dt>recipient <span class="property-type">string</span></dt>
+    <dd>The arriving email's email address.</dd>
+    <dt>payload <span class="property-type">string</span></dt>
+    <dd>The arriving email's body content.</dd>
+    <dt>subject <span class="property-type">string</span></dt>
+    <dd>The arriving email's subject.</dd>
+    <dt>timestamp <span class="property-type">string</span></dt>
+    <dd>The arriving email's timestamp.</dd>
+  </dl>
+</script>

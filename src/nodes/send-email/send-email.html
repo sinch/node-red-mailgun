@@ -1,0 +1,367 @@
+<script type="text/javascript">
+  const events = {
+    default: 'Default',
+    delivered: 'Delivered',
+    failed: 'Failed',
+    unsubscribed: 'Unsubscribed',
+    opened: 'Opened',
+    clicked: 'Link clicked',
+    complained: 'Spam complaints',
+    responses: 'Responses',
+  };
+
+  RED.nodes.registerType('sinch-send-email', {
+    category: 'Mailgun',
+    color: '#F3B2BA',
+    defaults: {
+      name: { 
+        value: "" ,
+      },
+      baseUrl: {
+        value: '',
+        required: true,
+      },
+      apiKey: {
+        value: '',
+        required: true,
+      },
+      sender: {
+        value: '',
+      },
+      recipient: {
+        value: '',
+      },
+      subject: {
+        value: '',
+        required: true,
+      },
+      body: {
+        value: '',
+      },
+      template: {
+        value: '',
+      },
+      variables: {
+        value: [{ key: '', value: '' }],
+      },
+      tags: {
+        value: [],
+      },
+      delivered: {
+        value: true,
+      },
+      failed: {
+        value: false,
+      },
+      unsubscribed: {
+        value: false,
+      },
+      opened: {
+        value: false,
+      },
+      clicked: {
+        value: false,
+      },
+      complained: {
+        value: false,
+      },
+      outputMap: {
+        value: '{"default":0,"delivered":1}',
+      },
+      outputs: {
+        value: 2,
+      },
+    },
+    inputs: 1,
+    outputs: 2,
+    outputLabels: function(index) {
+      if (this.outputMap) {
+        const outputFor = JSON.parse(this.outputMap);
+        for (const [key, value] of Object.entries(outputFor)) {
+          if (key == '') return '[error]';
+          if (value === index) {
+            return this._(events[key]) || events[key];
+          }
+        }
+      }
+      return this._('output');
+    },
+    icon: 'font-awesome/fa-envelope-o',
+    paletteLabel: function() {
+      return this.name || this._("node-label") || "Send Email";
+    },
+    label: function() {
+      return this.name || this._("node-label") || "Send Email";
+    },
+    oneditprepare,
+    oneditsave,
+  });
+  function oneditprepare() {
+    const nodeInputTemplate = $('#node-input-template');
+    const nodeInputBaseUrl = $('#node-input-baseUrl');
+    const nodeInputApiKey = $('#node-input-apiKey');
+    const syncTemplateButton = $('#send-email-sync-template-button');
+
+    const loadTemplates = (calledFromSyncButton = false) => {
+      $.ajax({
+        // eslint-disable-next-line no-undef
+        url: location.pathname + 'external/mailgun/templates',
+        method: 'POST',
+        data: {
+          baseUrl: nodeInputBaseUrl.val(),
+          apiKey: nodeInputApiKey.val(),
+        },
+        success: (res) => {
+          if (res && res.length) {
+            nodeInputTemplate.empty();
+            res.forEach(({ name }) => {
+              nodeInputTemplate.append(
+                $('<option></option>')
+                  .attr('value', name)
+                  .attr('selected', this.template === name)
+                  .text(name)
+              );
+            });
+            nodeInputTemplate.prop('disabled', false);
+            nodeInputTemplate.off('change');
+            nodeInputTemplate.append(
+              $('<option></option>')
+                .attr('value', '')
+                .text(this._('no-template-selected'))
+                .attr('selected', this.template === '')
+            );
+          } else {
+            nodeInputTemplate.append(
+              $('<option></option>')
+                .attr('value', '')
+                .text(this._('no-templates-available'))
+                .attr('selected', this.template === '')
+            );
+          }
+        },
+        error: () => {
+          if (!calledFromSyncButton) {
+            nodeInputTemplate.append(
+              $('<option></option>')
+                .attr('value', '')
+                .text(this._('authentication-error'))
+            );
+          }
+        },
+      });
+    };
+    syncTemplateButton.click(() => {
+      loadTemplates(true);
+    });
+    loadTemplates();
+    $('#node-config-input-variables-container')
+      .css('min-height', '200px')
+      .css('min-width', '250px')
+      .editableList({
+        addButton: false,
+        addItem: (container, i, { key, value }) => {
+          const initialInputWidth = (container.width() - 45) / 2;
+          container.css({
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+          });
+
+          key = typeof key === 'string' ? key : '';
+          value = typeof value === 'string' ? value : '';
+
+          $(`
+            <div class="form-row">
+              <input type="text"
+                id="key-${i}"
+                value="${key}"
+                placeholder="key"
+                style="width: ${initialInputWidth}px"
+              >
+              <input type="text"
+                id="value-${i}"
+                value="${value}"
+                placeholder="value"
+                style="width: ${initialInputWidth}px"
+              >
+            </div>
+          `).appendTo(container);
+        },
+        removable: true,
+        buttons: [
+          {
+            label: 'Add Variable',
+            icon: 'fa fa-plus',
+            click: function() {
+              $('#node-config-input-variables-container').editableList(
+                'addItem',
+                { key: '', value: '' }
+              );
+            },
+          },
+        ],
+      });
+    this.variables.forEach(({ key, value }) => {
+      $('#node-config-input-variables-container').editableList('addItem', {
+        key,
+        value,
+      });
+    });
+  }
+
+  function oneditsave() {
+    const node = this;
+    node.variables = [];
+    let variable = { key: '', value: '' };
+    let isKey = true;
+    $('#node-config-input-variables-container input').each(function(_, input) {
+      if (isKey) {
+        variable.key = input.value || '';
+        isKey = false;
+      } else {
+        variable.value = input.value || '';
+        isKey = true;
+        node.variables.push(variable);
+        variable = { key: '', value: '' };
+      }
+    });
+
+    let counter = 1;
+    const outputMapping = { default: 0 };
+    Object.keys(events).forEach((key) => {
+      if ($(`#node-input-${key}`).prop('checked')) {
+        outputMapping[key] = counter++;
+      }
+    });
+    $('#node-input-outputs').val(counter);
+    $('#node-input-outputMap').val(JSON.stringify(outputMapping));
+    node.outputs = counter;
+    node.outputMap = JSON.stringify(outputMapping);
+  }
+</script>
+
+<script type="text/html" data-template-name="sinch-send-email">
+  <div class="form-row">
+    <label for="node-input-name">
+      <span data-i18n="name"></span>
+    </label>
+    <input type="text" id="node-input-name">
+  </div>
+  <div class="form-row">
+    <label for="node-input-baseUrl"><span data-i18n="baseUrl"></span></label>
+    <input type="text" id="node-input-baseUrl" data-i18n="[placeholder]baseUrl">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-apiKey">
+      <span data-i18n="apiKey"></span>
+    </label>
+    <input type="text" id="node-input-apiKey" data-i18n="[placeholder]apiKey">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-sender">
+      <span data-i18n="sender"></span>
+    </label>
+    <input type="text" id="node-input-sender" data-i18n="[placeholder]sender-input">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-recipient">
+      <span data-i18n="recipient"></span>
+    </label>
+    <input type="text" id="node-input-recipient" data-i18n="[placeholder]recipient-input">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-subject">
+      <span data-i18n="subject"></span>
+    </label>
+    <input type="text" id="node-input-subject" data-i18n="[placeholder]subject-input">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-body">
+      <span data-i18n="body"></span>
+    </label>
+    <input type="text" id="node-input-body" data-i18n="[placeholder]body-input">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-template"><span data-i18n="template"></span></label>
+    <select id="node-input-template" style="width: 60%" disabled></select>
+    <a class="red-ui-button" id="send-email-sync-template-button" style="width: 10%"><i class="fa fa-repeat"></i></a>
+  </div>
+  <div class="form-row" style="margin-bottom:0;">
+    <label><i class="fa fa-book"></i> <span data-i18n="variables"></span></label>
+  </div>
+
+  <div class="form-row node-config-input-variables-container-row">
+    <ol id="node-config-input-variables-container"></ol>
+  </div>
+  <input type="hidden" id="node-input-outputs" />
+  <input type="hidden" id="node-input-outputMap" />
+  <div class="form-row">
+    <label for="node-input-delivered">
+      <span data-i18n="outputs"></span>
+    </label>
+    <br />
+  </div>
+  <div class="form-row">
+    <label class="checkbox-label" for="node-input-delivered">
+      <input type="checkbox" id="node-input-delivered" />
+      <span data-i18n="delivered"></span>
+    </label>
+  </div>
+  <div class="form-row">
+    <label class="checkbox-label" for="node-input-failed">
+      <input type="checkbox" id="node-input-failed" />
+      <span data-i18n="failed"></span>
+    </label>
+  </div>
+  <div class="form-row">
+    <label class="checkbox-label" for="node-input-unsubscribed">
+      <input type="checkbox" id="node-input-unsubscribed" />
+      <span data-i18n="unsubscribed"></span>
+    </label>
+  </div>
+  <div class="form-row">
+    <label class="checkbox-label" for="node-input-opened">
+      <input type="checkbox" id="node-input-opened" />
+      <span data-i18n="opened"></span>
+    </label>
+  </div>
+  <div class="form-row">
+    <label class="checkbox-label" for="node-input-clicked">
+      <input type="checkbox" id="node-input-clicked" />
+      <span data-i18n="clicked"></span>
+    </label>
+  </div>
+  <div class="form-row">
+    <label class="checkbox-label" for="node-input-complained">
+      <input type="checkbox" id="node-input-complained" />
+      <span data-i18n="complained"></span>
+    </label>
+  </div>
+  <style>
+    #node-config-input-variables-container .form-row {
+      margin-bottom: 0px;
+      padding-left: 5px;
+    }
+
+    .red-ui-editor .form-row .checkbox-label {
+      width: 70%;
+    }
+
+    .form-row input[type='checkbox'] {
+      display: inline-block;
+      width: 14px;
+      vertical-align: baseline;
+    }
+
+    .form-row label { width: 130px; }
+
+    #node-config-input-variables-container .red-ui-editableList-item-remove {
+      margin-top: -10px;
+    }
+  </style>
+</script>

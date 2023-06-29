@@ -1,0 +1,6 @@
+{
+  "node-label": "Received email",
+  "name": "Name",
+  "match-sender": "Match sender",
+  "reg-exp": "^[A-Za-z0-9._%+-]+@example\\.com$"
+}
