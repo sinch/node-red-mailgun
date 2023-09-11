@@ -1,6 +1,6 @@
 {
   "name": "@sinch/node-red-mailgun",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": "Sinch AB",
   "description": "Package of Mailgun nodes for Node-RED",
   "homepage": "https://www.sinch.com/",
@@ -36,6 +36,7 @@
     "prettier": "1.18.2"
   },
   "dependencies": {
+    "form-data": "4.0.0",
     "mailgun.js": "6.0.1"
   }
 }
