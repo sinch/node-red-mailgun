@@ -67,12 +67,14 @@ const registerCallback = (RED) => {
 const registerTemplates = (RED) => {
   RED.httpNode.post("/external/mailgun/templates", async (req, res) => {
     const mailgun = new Mailgun(formData);
-    const { baseUrl, apiKey } = req.body;
+    const { baseUrl, apiKey, region } = req.body;
     if (!baseUrl || !apiKey) {
       return res.sendStatus(400);
     }
 
-    const mg = mailgun.client({ username: "api", key: apiKey });
+    const url = region === 'EU' ? 'https://api.eu.mailgun.net' : undefined;
+
+    const mg = mailgun.client({ username: "api", key: apiKey, url });
     try {
       const response = await mg.domains.domainTemplates.list(baseUrl);
       if (response && response.items) {
