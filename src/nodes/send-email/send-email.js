@@ -18,6 +18,7 @@ module.exports = function(RED) {
         outputMap,
         outputs,
         variables,
+        region,
       } = this.config;
 
       this.onCallback = (msg) => {
@@ -65,7 +66,9 @@ module.exports = function(RED) {
             };
           }
 
-          const mg = mailgun.client({ username: 'api', key: apiKey });
+          const url = region === 'EU' ? 'https://api.eu.mailgun.net' : undefined;
+
+          const mg = mailgun.client({ username: 'api', key: apiKey, url });
           mg.messages
             .create(baseUrl, data)
             .then((res) => {

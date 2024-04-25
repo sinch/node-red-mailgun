@@ -1,48 +1,51 @@
 <script type="text/javascript">
   const events = {
-    default: 'Default',
-    delivered: 'Delivered',
-    failed: 'Failed',
-    unsubscribed: 'Unsubscribed',
-    opened: 'Opened',
-    clicked: 'Link clicked',
-    complained: 'Spam complaints',
-    responses: 'Responses',
+    default: "Default",
+    delivered: "Delivered",
+    failed: "Failed",
+    unsubscribed: "Unsubscribed",
+    opened: "Opened",
+    clicked: "Link clicked",
+    complained: "Spam complaints",
+    responses: "Responses",
   };
 
-  RED.nodes.registerType('sinch-send-email', {
-    category: 'Mailgun',
-    color: '#F3B2BA',
+  RED.nodes.registerType("sinch-send-email", {
+    category: "Mailgun",
+    color: "#F3B2BA",
     defaults: {
-      name: { 
-        value: "" ,
+      name: {
+        value: "",
       },
       baseUrl: {
-        value: '',
+        value: "",
         required: true,
       },
       apiKey: {
-        value: '',
+        value: "",
         required: true,
       },
       sender: {
-        value: '',
+        value: "",
       },
       recipient: {
-        value: '',
+        value: "",
       },
       subject: {
-        value: '',
+        value: "",
         required: true,
       },
       body: {
-        value: '',
+        value: "",
       },
       template: {
-        value: '',
+        value: "",
+      },
+      region: {
+        value: "US",
       },
       variables: {
-        value: [{ key: '', value: '' }],
+        value: [{ key: "", value: "" }],
       },
       tags: {
         value: [],
@@ -78,15 +81,15 @@
       if (this.outputMap) {
         const outputFor = JSON.parse(this.outputMap);
         for (const [key, value] of Object.entries(outputFor)) {
-          if (key == '') return '[error]';
+          if (key == "") return "[error]";
           if (value === index) {
             return this._(events[key]) || events[key];
           }
         }
       }
-      return this._('output');
+      return this._("output");
     },
-    icon: 'font-awesome/fa-envelope-o',
+    icon: "font-awesome/fa-envelope-o",
     paletteLabel: function() {
       return this.name || this._("node-label") || "Send Email";
     },
@@ -97,77 +100,93 @@
     oneditsave,
   });
   function oneditprepare() {
-    const nodeInputTemplate = $('#node-input-template');
-    const nodeInputBaseUrl = $('#node-input-baseUrl');
-    const nodeInputApiKey = $('#node-input-apiKey');
-    const syncTemplateButton = $('#send-email-sync-template-button');
+    const nodeInputTemplate = $("#node-input-template");
+    const nodeInputRegion = $("#node-input-region");
+    const nodeInputBaseUrl = $("#node-input-baseUrl");
+    const nodeInputApiKey = $("#node-input-apiKey");
+    const syncTemplateButton = $("#send-email-sync-template-button");
 
-    const loadTemplates = (calledFromSyncButton = false) => {
+    nodeInputRegion.typedInput({
+      types: [
+        {
+          value: "region",
+          options: [{ value: "US", label: "US" }, { value: "EU", label: "EU" }],
+        },
+      ],
+    });
+
+    const loadTemplates = (region) => {
       $.ajax({
         // eslint-disable-next-line no-undef
-        url: location.pathname + 'external/mailgun/templates',
-        method: 'POST',
+        url: location.pathname + "external/mailgun/templates",
+        method: "POST",
         data: {
           baseUrl: nodeInputBaseUrl.val(),
           apiKey: nodeInputApiKey.val(),
+          region: region ? region : nodeInputRegion.val(),
         },
         success: (res) => {
           if (res && res.length) {
             nodeInputTemplate.empty();
             res.forEach(({ name }) => {
               nodeInputTemplate.append(
-                $('<option></option>')
-                  .attr('value', name)
-                  .attr('selected', this.template === name)
+                $("<option></option>")
+                  .attr("value", name)
+                  .attr("selected", this.template === name)
                   .text(name)
               );
             });
-            nodeInputTemplate.prop('disabled', false);
-            nodeInputTemplate.off('change');
+            nodeInputTemplate.prop("disabled", false);
+            nodeInputTemplate.off("change");
             nodeInputTemplate.append(
-              $('<option></option>')
-                .attr('value', '')
-                .text(this._('no-template-selected'))
-                .attr('selected', this.template === '')
+              $("<option></option>")
+                .attr("value", "")
+                .text(this._("no-template-selected"))
+                .attr("selected", this.template === "")
             );
           } else {
             nodeInputTemplate.append(
-              $('<option></option>')
-                .attr('value', '')
-                .text(this._('no-templates-available'))
-                .attr('selected', this.template === '')
+              $("<option></option>")
+                .attr("value", "")
+                .text(this._("no-templates-available"))
+                .attr("selected", this.template === "")
             );
           }
         },
         error: () => {
-          if (!calledFromSyncButton) {
+            nodeInputTemplate.empty();
             nodeInputTemplate.append(
-              $('<option></option>')
-                .attr('value', '')
-                .text(this._('authentication-error'))
+              $("<option></option>")
+                .attr("value", "")
+                .text(this._("authentication-error"))
             );
-          }
         },
       });
     };
     syncTemplateButton.click(() => {
-      loadTemplates(true);
+      loadTemplates();
     });
     loadTemplates();
-    $('#node-config-input-variables-container')
-      .css('min-height', '200px')
-      .css('min-width', '250px')
+
+    nodeInputRegion.change((evt) => {
+      loadTemplates(evt.target.value);
+
+    });
+
+    $("#node-config-input-variables-container")
+      .css("min-height", "200px")
+      .css("min-width", "250px")
       .editableList({
         addButton: false,
         addItem: (container, i, { key, value }) => {
           const initialInputWidth = (container.width() - 45) / 2;
           container.css({
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
+            overflow: "hidden",
+            whiteSpace: "nowrap",
           });
 
-          key = typeof key === 'string' ? key : '';
-          value = typeof value === 'string' ? value : '';
+          key = typeof key === "string" ? key : "";
+          value = typeof value === "string" ? value : "";
 
           $(`
             <div class="form-row">
@@ -189,19 +208,19 @@
         removable: true,
         buttons: [
           {
-            label: 'Add Variable',
-            icon: 'fa fa-plus',
+            label: "Add Variable",
+            icon: "fa fa-plus",
             click: function() {
-              $('#node-config-input-variables-container').editableList(
-                'addItem',
-                { key: '', value: '' }
+              $("#node-config-input-variables-container").editableList(
+                "addItem",
+                { key: "", value: "" }
               );
             },
           },
         ],
       });
     this.variables.forEach(({ key, value }) => {
-      $('#node-config-input-variables-container').editableList('addItem', {
+      $("#node-config-input-variables-container").editableList("addItem", {
         key,
         value,
       });
@@ -211,29 +230,29 @@
   function oneditsave() {
     const node = this;
     node.variables = [];
-    let variable = { key: '', value: '' };
+    let variable = { key: "", value: "" };
     let isKey = true;
-    $('#node-config-input-variables-container input').each(function(_, input) {
+    $("#node-config-input-variables-container input").each(function(_, input) {
       if (isKey) {
-        variable.key = input.value || '';
+        variable.key = input.value || "";
         isKey = false;
       } else {
-        variable.value = input.value || '';
+        variable.value = input.value || "";
         isKey = true;
         node.variables.push(variable);
-        variable = { key: '', value: '' };
+        variable = { key: "", value: "" };
       }
     });
 
     let counter = 1;
     const outputMapping = { default: 0 };
     Object.keys(events).forEach((key) => {
-      if ($(`#node-input-${key}`).prop('checked')) {
+      if ($(`#node-input-${key}`).prop("checked")) {
         outputMapping[key] = counter++;
       }
     });
-    $('#node-input-outputs').val(counter);
-    $('#node-input-outputMap').val(JSON.stringify(outputMapping));
+    $("#node-input-outputs").val(counter);
+    $("#node-input-outputMap").val(JSON.stringify(outputMapping));
     node.outputs = counter;
     node.outputMap = JSON.stringify(outputMapping);
   }
@@ -284,6 +303,11 @@
       <span data-i18n="body"></span>
     </label>
     <input type="text" id="node-input-body" data-i18n="[placeholder]body-input">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-region"><span data-i18n="region"></span></label>
+    <input type="text" id="node-input-region">
   </div>
 
   <div class="form-row">
